@@ -17,20 +17,24 @@ export default function DashboardScreen() {
   const insights = useMemo(() => generateInsights(profileLogs), [profileLogs]);
 
   const stats = useMemo(() => {
-    const total = profileLogs.filter(l => l.postGameData).length;
+    let total = 0;
     let wins = 0;
     let losses = 0;
     let draws = 0;
     let totalTilt = 0;
+    let tiltCount = 0;
     
     profileLogs.forEach(log => {
       if (log.postGameData) {
+        total++;
         if (log.postGameData.outcome === 'Win') wins++;
         else if (log.postGameData.outcome === 'Loss') losses++;
         else if (log.postGameData.outcome === 'Draw') draws++;
-      }
-      if (log.derivedTilt) {
-        totalTilt += log.derivedTilt;
+
+        if (log.postGameData.derivedTilt !== undefined) {
+          totalTilt += log.postGameData.derivedTilt;
+          tiltCount++;
+        }
       }
     });
 
@@ -40,7 +44,7 @@ export default function DashboardScreen() {
       losses,
       draws,
       winRate: total > 0 ? Math.round((wins / total) * 100) : 0,
-      avgTilt: total > 0 ? (totalTilt / total).toFixed(1) : 0,
+      avgTilt: tiltCount > 0 ? (totalTilt / tiltCount).toFixed(1) : '-',
     };
   }, [profileLogs]);
 
@@ -160,10 +164,10 @@ export default function DashboardScreen() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col">
           <div className="flex items-center space-x-2 text-zinc-400 mb-2">
             <Trophy size={16} />
-            <span className="text-xs font-medium uppercase tracking-wider">Record</span>
+            <span className="text-xs font-medium uppercase tracking-wider">Win Rate</span>
           </div>
-          <div className="text-2xl font-bold text-zinc-100">{stats.wins}-{stats.losses}-{stats.draws}</div>
-          <div className="text-xs text-zinc-500 mt-1">{stats.winRate}% Win Rate</div>
+          <div className="text-2xl font-bold text-zinc-100">{stats.winRate}%</div>
+          <div className="text-xs text-zinc-500 mt-1">{stats.wins}W - {stats.losses}L - {stats.draws}D</div>
         </div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col">
           <div className="flex items-center space-x-2 text-zinc-400 mb-2">
@@ -171,7 +175,7 @@ export default function DashboardScreen() {
             <span className="text-xs font-medium uppercase tracking-wider">Avg Tilt</span>
           </div>
           <div className="text-2xl font-bold text-zinc-100">{stats.avgTilt} <span className="text-sm font-normal text-zinc-500">/ 10</span></div>
-          <div className="text-xs text-zinc-500 mt-1">Derived from matches</div>
+          <div className="text-xs text-zinc-500 mt-1">Derived from logs</div>
         </div>
       </section>
 

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AppState, LogEntry, Profile, Session } from '../types';
 import { defaultFields } from '../config/defaultFields';
+import { calculateDerivedTilt } from '../services/tiltCalculation';
 
 const SESSION_TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2 hours
 
@@ -39,23 +40,25 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      resetProfile: (id) => {
+      updateProfileSettings: (id, settings) => {
+        set((state) => ({
+          profiles: state.profiles.map((p) =>
+            p.id === id ? { ...p, settings } : p
+          ),
+        }));
+      },
+
+      resetProfileLogs: (id) => {
         set((state) => ({
           logs: state.logs.filter((l) => l.profileId !== id),
           sessions: state.sessions.filter((s) => s.profileId !== id),
         }));
       },
 
-      renameProfile: (id, name) => {
-        set((state) => ({
-          profiles: state.profiles.map((p) => p.id === id ? { ...p, name } : p)
-        }));
-      },
-
-      updateProfileSettings: (id, settings) => {
+      renameProfile: (id, newName) => {
         set((state) => ({
           profiles: state.profiles.map((p) =>
-            p.id === id ? { ...p, settings } : p
+            p.id === id ? { ...p, name: newName } : p
           ),
         }));
       },
@@ -112,12 +115,25 @@ export const useStore = create<AppState>()(
         return newLog.id;
       },
 
-      addPostGameLog: (logId, data, derivedTilt) => {
-        set((state) => ({
-          logs: state.logs.map((l) =>
-            l.id === logId ? { ...l, postGameData: data, derivedTilt } : l
-          ),
-        }));
+      addPostGameLog: (logId, data) => {
+        set((state) => {
+          const log = state.logs.find(l => l.id === logId);
+          if (!log) return state;
+
+          const recentLogs = state.logs
+            .filter(l => l.profileId === log.profileId && l.postGameData)
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 3);
+
+          const tiltResult = calculateDerivedTilt(log.preGameData, data, recentLogs);
+          const postGameDataWithTilt = { ...data, derivedTilt: tiltResult.score, tiltLabel: tiltResult.label };
+
+          return {
+            logs: state.logs.map((l) =>
+              l.id === logId ? { ...l, postGameData: postGameDataWithTilt } : l
+            ),
+          };
+        });
       },
     }),
     {

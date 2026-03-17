@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { FieldRenderer } from './PreGameLogScreen';
-import { calculateDerivedTilt } from '../services/tiltService';
 
 export default function PostGameLogScreen() {
   const navigate = useNavigate();
@@ -30,14 +29,7 @@ export default function PostGameLogScreen() {
     e.preventDefault();
     if (!logId) return;
 
-    const currentLog = logs.find(l => l.id === logId);
-    if (!currentLog) return;
-
-    const recentLogs = logs.filter(l => l.profileId === activeProfileId && l.postGameData && l.id !== logId);
-    
-    const derivedTilt = calculateDerivedTilt(currentLog.preGameData, formData, recentLogs);
-
-    addPostGameLog(logId, formData, derivedTilt);
+    addPostGameLog(logId, formData);
     navigate('/dashboard');
   };
 

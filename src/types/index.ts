@@ -4,7 +4,6 @@ export interface FieldConfig {
   id: string;
   label: string;
   type: FieldType;
-  min?: number;
   max?: number;
   step?: number;
   defaultValue: any;
@@ -31,7 +30,6 @@ export interface LogEntry {
   preGameData: Record<string, any>;
   postGameData?: Record<string, any>;
   sessionId: string;
-  derivedTilt?: number;
 }
 
 export interface Session {
@@ -52,10 +50,10 @@ export interface AppState {
   createProfile: (name: string) => void;
   setActiveProfile: (id: string) => void;
   deleteProfile: (id: string) => void;
-  resetProfile: (id: string) => void;
-  renameProfile: (id: string, name: string) => void;
   updateProfileSettings: (id: string, settings: Profile['settings']) => void;
+  resetProfileLogs: (id: string) => void;
+  renameProfile: (id: string, newName: string) => void;
   
   addPreGameLog: (profileId: string, data: Record<string, any>) => string; // returns logId
-  addPostGameLog: (logId: string, data: Record<string, any>, derivedTilt: number) => void;
+  addPostGameLog: (logId: string, data: Record<string, any>) => void;
 }

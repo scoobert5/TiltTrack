@@ -45,18 +45,22 @@ export default function RawDataScreen() {
                 <div>
                   <h4 className="text-xs font-semibold text-zinc-500 uppercase mb-2">Pre-Game</h4>
                   <ul className="space-y-1 text-zinc-300">
-                    <li>Tilt: <span className="font-mono text-indigo-400">{log.preGameData.tilt}</span></li>
                     <li>Energy: <span className="font-mono text-indigo-400">{log.preGameData.energy}</span></li>
+                    <li>Mood: <span className="font-mono text-indigo-400">{log.preGameData.mood}</span></li>
                     <li>Focus: <span className="font-mono text-indigo-400">{log.preGameData.focus}</span></li>
+                    <li>Confidence: <span className="font-mono text-indigo-400">{log.preGameData.confidence}</span></li>
                   </ul>
                 </div>
                 {log.postGameData ? (
                   <div>
                     <h4 className="text-xs font-semibold text-zinc-500 uppercase mb-2">Post-Game</h4>
                     <ul className="space-y-1 text-zinc-300">
-                      <li>Frustration: <span className="font-mono text-indigo-400">{log.postGameData.frustration}</span></li>
                       <li>Energy: <span className="font-mono text-indigo-400">{log.postGameData.energy}</span></li>
-                      <li>Focus: <span className="font-mono text-indigo-400">{log.postGameData.focus}</span></li>
+                      <li>Mood: <span className="font-mono text-indigo-400">{log.postGameData.mood}</span></li>
+                      <li>Frustration: <span className="font-mono text-indigo-400">{log.postGameData.frustration}</span></li>
+                      {log.postGameData.derivedTilt !== undefined && (
+                        <li>Tilt: <span className="font-mono text-amber-400">{log.postGameData.derivedTilt} ({log.postGameData.tiltLabel})</span></li>
+                      )}
                     </ul>
                   </div>
                 ) : (

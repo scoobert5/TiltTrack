@@ -12,20 +12,36 @@ export default function PreGameLogScreen() {
   const profile = profiles.find((p) => p.id === activeProfileId);
   const preGameFields = profile?.settings.fields.filter((f) => f.category === 'pre-game' && f.enabled) || [];
 
-  const profileLogs = logs.filter((l) => l.profileId === profile?.id && l.postGameData);
-  const lastLog = profileLogs[profileLogs.length - 1];
-
   useEffect(() => {
     if (!profile) return;
 
     const initialData: Record<string, any> = {};
-
     preGameFields.forEach((field) => {
+      // Sliders default to 1, others to their defaultValue
       initialData[field.id] = field.type === 'slider' ? 1 : field.defaultValue;
     });
 
     setFormData(initialData);
   }, [profile]);
+
+  const profileLogs = logs.filter((l) => l.profileId === profile?.id);
+  const lastLog = profileLogs[profileLogs.length - 1];
+  
+  const renderReference = () => {
+    if (!lastLog) return null;
+    const { energy, mood, focus, confidence } = lastLog.preGameData;
+    if (energy === undefined && mood === undefined) return null;
+    
+    return (
+      <div className="mb-6 p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-400 flex flex-wrap gap-x-4 gap-y-2">
+        <span className="font-semibold text-zinc-300 w-full mb-1">Last Match Pre-Game:</span>
+        {energy !== undefined && <span>Energy: {energy}</span>}
+        {mood !== undefined && <span>Mood: {mood}</span>}
+        {focus !== undefined && <span>Focus: {focus}</span>}
+        {confidence !== undefined && <span>Confidence: {confidence}</span>}
+      </div>
+    );
+  };
 
   const handleChange = (id: string, value: any) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -36,6 +52,10 @@ export default function PreGameLogScreen() {
     if (!activeProfileId) return;
 
     const logId = addPreGameLog(activeProfileId, formData);
+    // After pre-game log, we usually wait for the game to finish.
+    // In a real app, we might go to an "In Game" screen or back to dashboard.
+    // For this flow, let's go to dashboard, and they can click "Log Post-Game" from there.
+    // Actually, let's navigate to the post-game log screen directly for testing, or dashboard.
     navigate('/dashboard');
   };
 
@@ -48,14 +68,7 @@ export default function PreGameLogScreen() {
         <p className="text-sm text-zinc-500">How are you feeling before queuing?</p>
       </header>
 
-      {lastLog && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-6">
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Last Match Reference</h3>
-          <p className="text-sm text-zinc-300">
-            {preGameFields.filter(f => f.type === 'slider').map(f => `${f.label}: ${lastLog.preGameData[f.id] || '-'}`).join(', ')}
-          </p>
-        </div>
-      )}
+      {renderReference()}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {preGameFields.map((field) => (
@@ -105,6 +118,8 @@ export const FieldRenderer: React.FC<{ field: FieldConfig; value: any; onChange:
         <label className="text-sm font-medium text-zinc-300">{field.label}</label>
         <div className="flex bg-zinc-900 rounded-xl p-1 border border-zinc-800">
           {field.options?.map((opt, idx) => {
+            // If options are strings, value might be index or string depending on setup.
+            // Let's assume value is the index if min/max are numbers, or string if outcome.
             const isSelected = typeof value === 'number' ? value === idx : value === opt;
             return (
               <button

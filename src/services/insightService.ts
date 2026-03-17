@@ -10,20 +10,20 @@ export interface Insight {
 export const generateInsights = (logs: LogEntry[]): Insight[] => {
   const insights: Insight[] = [];
   
-  const completedLogs = logs.filter(l => l.postGameData);
+  const fullLogs = logs.filter(l => l.postGameData);
 
-  if (completedLogs.length < 2) {
+  if (fullLogs.length < 2) {
     return [
       {
         id: 'not-enough-data',
         title: 'Gathering Data',
-        description: 'Play a few more matches to unlock personalized insights.',
+        description: 'Complete at least 2 matches to unlock personalized insights.',
         type: 'neutral',
       },
     ];
   }
 
-  const recentLogs = completedLogs.slice(-10); // Analyze last 10 matches
+  const recentLogs = fullLogs.slice(-10); // Analyze last 10 matches
   let totalWins = 0;
   let totalLosses = 0;
   let highTiltLosses = 0;
@@ -31,28 +31,26 @@ export const generateInsights = (logs: LogEntry[]): Insight[] => {
 
   recentLogs.forEach((log) => {
     const pre = log.preGameData;
-    const post = log.postGameData;
+    const post = log.postGameData!;
 
-    if (post) {
-      if (post.outcome === 'Win') totalWins++;
-      if (post.outcome === 'Loss') {
-        totalLosses++;
-        if (log.derivedTilt && log.derivedTilt >= 6) highTiltLosses++;
-        if (pre.energy <= 4) lowEnergyLosses++;
-      }
+    if (post.outcome === 'Win') totalWins++;
+    if (post.outcome === 'Loss') {
+      totalLosses++;
+      if (post.derivedTilt && post.derivedTilt >= 6) highTiltLosses++;
+      if (pre.energy && pre.energy <= 4) lowEnergyLosses++;
     }
   });
 
-  if (highTiltLosses >= 2) {
+  if (highTiltLosses >= 1) {
     insights.push({
       id: 'high-tilt-losses',
       title: 'Tilt Impact',
-      description: 'You tend to lose more often when starting a match with high tilt. Consider a break when frustrated.',
+      description: 'You tend to lose more often when your tilt score is high. Consider a break when frustrated.',
       type: 'negative',
     });
   }
 
-  if (lowEnergyLosses >= 2) {
+  if (lowEnergyLosses >= 1) {
     insights.push({
       id: 'low-energy-losses',
       title: 'Energy Matters',
@@ -61,7 +59,7 @@ export const generateInsights = (logs: LogEntry[]): Insight[] => {
     });
   }
 
-  if (totalWins > totalLosses && totalWins >= 3) {
+  if (totalWins > totalLosses && totalWins >= 2) {
     insights.push({
       id: 'win-streak',
       title: 'In the Zone',
@@ -70,11 +68,12 @@ export const generateInsights = (logs: LogEntry[]): Insight[] => {
     });
   }
 
+  // If we have no specific insights but have enough data, provide a generic one
   if (insights.length === 0) {
     insights.push({
-      id: 'steady',
-      title: 'Steady Performance',
-      description: 'Your performance is stable. Keep tracking to uncover deeper patterns.',
+      id: 'stable-performance',
+      title: 'Stable Performance',
+      description: 'Your performance is currently stable. Keep tracking to find more patterns.',
       type: 'neutral',
     });
   }

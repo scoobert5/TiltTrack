@@ -17,37 +17,46 @@ export const calculateRiskScore = (recentLogs: LogEntry[]): RiskResult => {
   
   let lossStreak = 0;
   let lowEnergyCount = 0;
-  let recentTilt = 0;
+  let recentHighTilt = false;
 
   for (let i = logs.length - 1; i >= 0; i--) {
     const log = logs[i];
     const pre = log.preGameData;
     const post = log.postGameData;
 
-    if (pre.energy <= 3) lowEnergyCount += 1;
-    if (log.derivedTilt && log.derivedTilt >= 7) recentTilt += 1;
+    if (pre.energy && pre.energy <= 3) lowEnergyCount += 1;
 
-    if (post && post.outcome === 'Loss') {
-      lossStreak += 1;
-    } else if (post && post.outcome === 'Win') {
-      lossStreak = 0; // Reset streak on win
+    if (post) {
+      if (post.outcome === 'Loss') {
+        lossStreak += 1;
+      } else if (post.outcome === 'Win') {
+        lossStreak = 0; // Reset streak on win
+      }
+      
+      if (post.derivedTilt && post.derivedTilt >= 7) {
+        recentHighTilt = true;
+      }
     }
   }
 
-  const latestLog = logs[logs.length - 1];
-  const latestPre = latestLog.preGameData;
-  const lastDerivedTilt = latestLog.postGameData ? latestLog.derivedTilt : (logs.length > 1 ? logs[logs.length - 2].derivedTilt : 0);
+  const latestPre = logs[logs.length - 1].preGameData;
+  const preMood = latestPre.mood || 5;
+  const preFocus = latestPre.focus || 5;
+  const preConfidence = latestPre.confidence || 5;
+  const preEnergy = latestPre.energy || 5;
+  
+  const preVulnerability = ((10 - preMood) + (10 - preFocus) + (10 - preConfidence)) / 3;
   
   // High Risk Conditions
-  if ((lastDerivedTilt && lastDerivedTilt >= 8) || lossStreak >= 3 || (latestPre.energy <= 3 && latestPre.mood <= 3)) {
+  if (preVulnerability >= 7 || lossStreak >= 3 || (preEnergy <= 3 && preMood <= 3)) {
     return {
       score: 'High',
-      explanation: 'High tilt or loss streak detected. Consider taking a break.',
+      explanation: 'High vulnerability or loss streak detected. Consider taking a break.',
     };
   }
 
   // Medium Risk Conditions
-  if ((lastDerivedTilt && lastDerivedTilt >= 6) || lossStreak >= 2 || lowEnergyCount >= 2 || (latestPre.focus && latestPre.focus <= 4)) {
+  if (preVulnerability >= 5 || lossStreak >= 2 || lowEnergyCount >= 2 || recentHighTilt) {
     return {
       score: 'Medium',
       explanation: 'Moderate risk. Stay focused and monitor your frustration.',

@@ -6,7 +6,7 @@ import clsx from 'clsx';
 
 export default function PreGameLogScreen() {
   const navigate = useNavigate();
-  const { activeProfileId, profiles, addPreGameLog, logs } = useStore();
+  const { activeProfileId, profiles, addPreGameLog, logs, preGameDraft, setPreGameDraft } = useStore();
   const [formData, setFormData] = useState<Record<string, any>>({});
 
   const profile = profiles.find((p) => p.id === activeProfileId);
@@ -21,14 +21,23 @@ export default function PreGameLogScreen() {
       initialData[field.id] = field.type === 'slider' ? 1 : field.defaultValue;
     });
 
+    if (preGameDraft) {
+      setFormData({ ...initialData, ...preGameDraft });
+      return;
+    }
+
     setFormData(initialData);
-  }, [profile]);
+  }, [profile]); // Intentionally omitting preGameDraft from dependencies to only run on mount/profile change
 
   const profileLogs = logs.filter((l) => l.profileId === profile?.id);
   const lastLog = profileLogs[profileLogs.length - 1];
 
   const handleChange = (id: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [id]: value };
+      setPreGameDraft(next);
+      return next;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,6 +45,7 @@ export default function PreGameLogScreen() {
     if (!activeProfileId) return;
 
     const logId = addPreGameLog(activeProfileId, formData);
+    setPreGameDraft(null);
     // After pre-game log, we usually wait for the game to finish.
     // In a real app, we might go to an "In Game" screen or back to dashboard.
     // For this flow, let's go to dashboard, and they can click "Log Post-Game" from there.

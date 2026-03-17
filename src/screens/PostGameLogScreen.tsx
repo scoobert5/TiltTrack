@@ -6,7 +6,7 @@ import { FieldRenderer } from './PreGameLogScreen';
 export default function PostGameLogScreen() {
   const navigate = useNavigate();
   const { logId } = useParams();
-  const { activeProfileId, profiles, addPostGameLog, logs } = useStore();
+  const { activeProfileId, profiles, addPostGameLog, logs, postGameDraft, setPostGameDraft } = useStore();
   const [formData, setFormData] = useState<Record<string, any>>({});
 
   const profile = profiles.find((p) => p.id === activeProfileId);
@@ -14,15 +14,26 @@ export default function PostGameLogScreen() {
 
   useEffect(() => {
     if (!profile) return;
+    
     const initialData: Record<string, any> = {};
     postGameFields.forEach((field) => {
       initialData[field.id] = field.type === 'slider' ? 1 : field.defaultValue;
     });
+
+    if (postGameDraft) {
+      setFormData({ ...initialData, ...postGameDraft });
+      return;
+    }
+    
     setFormData(initialData);
-  }, [profile]);
+  }, [profile]); // Intentionally omitting postGameDraft from dependencies to only run on mount/profile change
 
   const handleChange = (id: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [id]: value };
+      setPostGameDraft(next);
+      return next;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,6 +41,7 @@ export default function PostGameLogScreen() {
     if (!logId) return;
 
     addPostGameLog(logId, formData);
+    setPostGameDraft(null);
     navigate('/dashboard');
   };
 

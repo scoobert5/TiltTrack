@@ -46,6 +46,9 @@ export interface AppState {
   logs: LogEntry[];
   sessions: Session[];
   
+  preGameDraft: Record<string, any> | null;
+  postGameDraft: Record<string, any> | null;
+  
   // Actions
   createProfile: (name: string) => void;
   setActiveProfile: (id: string) => void;
@@ -53,6 +56,9 @@ export interface AppState {
   updateProfileSettings: (id: string, settings: Profile['settings']) => void;
   resetProfileLogs: (id: string) => void;
   renameProfile: (id: string, newName: string) => void;
+  
+  setPreGameDraft: (draft: Record<string, any> | null) => void;
+  setPostGameDraft: (draft: Record<string, any> | null) => void;
   
   addPreGameLog: (profileId: string, data: Record<string, any>) => string; // returns logId
   addPostGameLog: (logId: string, data: Record<string, any>) => void;

@@ -13,6 +13,8 @@ export const useStore = create<AppState>()(
       activeProfileId: null,
       logs: [],
       sessions: [],
+      preGameDraft: null,
+      postGameDraft: null,
 
       createProfile: (name) => {
         const newProfile: Profile = {
@@ -29,7 +31,7 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      setActiveProfile: (id) => set({ activeProfileId: id }),
+      setActiveProfile: (id) => set({ activeProfileId: id, preGameDraft: null, postGameDraft: null }),
 
       deleteProfile: (id) => {
         set((state) => ({
@@ -37,6 +39,8 @@ export const useStore = create<AppState>()(
           logs: state.logs.filter((l) => l.profileId !== id),
           sessions: state.sessions.filter((s) => s.profileId !== id),
           activeProfileId: state.activeProfileId === id ? null : state.activeProfileId,
+          preGameDraft: state.activeProfileId === id ? null : state.preGameDraft,
+          postGameDraft: state.activeProfileId === id ? null : state.postGameDraft,
         }));
       },
 
@@ -52,6 +56,8 @@ export const useStore = create<AppState>()(
         set((state) => ({
           logs: state.logs.filter((l) => l.profileId !== id),
           sessions: state.sessions.filter((s) => s.profileId !== id),
+          preGameDraft: state.activeProfileId === id ? null : state.preGameDraft,
+          postGameDraft: state.activeProfileId === id ? null : state.postGameDraft,
         }));
       },
 
@@ -62,6 +68,9 @@ export const useStore = create<AppState>()(
           ),
         }));
       },
+
+      setPreGameDraft: (draft) => set({ preGameDraft: draft }),
+      setPostGameDraft: (draft) => set({ postGameDraft: draft }),
 
       addPreGameLog: (profileId, data) => {
         const now = Date.now();

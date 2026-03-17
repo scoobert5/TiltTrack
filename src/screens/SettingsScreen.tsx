@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { FieldConfig } from '../types';
 import { Settings, Plus, ToggleLeft, ToggleRight, Edit2, X, Check, GripVertical, ChevronRight, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
+import { defaultPreGameFields, defaultPostGameFields } from '../config/defaultFields';
 
 export default function SettingsScreen() {
   const { activeProfileId, profiles, updateProfileSettings } = useStore();
@@ -112,6 +113,35 @@ export default function SettingsScreen() {
     
     setDraggedField(null);
     setDragOverField(null);
+  };
+
+  const handleResetLayout = () => {
+    const defaultOrder = sliderTab === 'pre-game' ? defaultPreGameFields : defaultPostGameFields;
+    const currentCategoryFields = fields.filter(f => f.category === sliderTab);
+    const otherCategoryFields = fields.filter(f => f.category !== sliderTab);
+    
+    const sortedFields = [...currentCategoryFields].sort((a, b) => {
+      const indexA = defaultOrder.findIndex(df => df.id === a.id);
+      const indexB = defaultOrder.findIndex(df => df.id === b.id);
+      
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return 0;
+    });
+    
+    const newFields = [...otherCategoryFields, ...sortedFields];
+    setFields(newFields);
+    updateProfileSettings(profile.id, { fields: newFields });
+  };
+
+  const handleResetAll = () => {
+    const defaultOrder = sliderTab === 'pre-game' ? defaultPreGameFields : defaultPostGameFields;
+    const otherCategoryFields = fields.filter(f => f.category !== sliderTab);
+    
+    const newFields = [...otherCategoryFields, ...defaultOrder];
+    setFields(newFields);
+    updateProfileSettings(profile.id, { fields: newFields });
   };
 
   const handleMaxChange = (id: string, category: 'pre-game' | 'post-game', value: string) => {
@@ -254,10 +284,7 @@ export default function SettingsScreen() {
           <div className="flex justify-end mb-4">
             <button 
               onClick={() => addField(sliderTab)}
-              className={clsx(
-                "text-xs font-medium px-3 py-1.5 rounded-full flex items-center space-x-1",
-                sliderTab === 'pre-game' ? "text-indigo-400 hover:text-indigo-300 bg-indigo-500/10" : "text-rose-400 hover:text-rose-300 bg-rose-500/10"
-              )}
+              className="text-xs font-medium px-3 py-1.5 rounded-full flex items-center space-x-1 text-zinc-100 bg-zinc-800 hover:bg-zinc-700 transition-colors"
             >
               <Plus size={14} />
               <span>Add Field</span>
@@ -268,6 +295,21 @@ export default function SettingsScreen() {
               {renderFieldEditor(field)}
             </React.Fragment>
           ))}
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-zinc-800 space-y-3">
+          <button
+            onClick={handleResetLayout}
+            className="w-full py-3 rounded-xl text-sm font-medium text-zinc-300 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors"
+          >
+            Reset Layout
+          </button>
+          <button
+            onClick={handleResetAll}
+            className="w-full py-3 rounded-xl text-sm font-medium text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-colors"
+          >
+            Reset All Fields
+          </button>
         </div>
       </div>
     );

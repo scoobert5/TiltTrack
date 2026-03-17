@@ -39,7 +39,6 @@ export default function PostGameLogScreen() {
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-zinc-100">Post-Game Log</h1>
-        <p className="text-sm text-zinc-500">How did the match go?</p>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6">

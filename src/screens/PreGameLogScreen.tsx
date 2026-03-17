@@ -93,7 +93,7 @@ export const FieldRenderer: React.FC<{ field: FieldConfig; value: any; previousV
         <input
           type="range"
           min={1}
-          max={field.max || 10}
+          max={field.max || 5}
           step={field.step || 1}
           value={value || 1}
           onChange={(e) => onChange(field.id, Number(e.target.value))}

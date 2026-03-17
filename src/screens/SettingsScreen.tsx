@@ -45,7 +45,7 @@ export default function SettingsScreen() {
       id: `custom_${Date.now()}`,
       label: 'New Custom Field',
       type: 'slider',
-      max: 10,
+      max: 5,
       step: 1,
       defaultValue: 1,
       required: false,
@@ -57,7 +57,7 @@ export default function SettingsScreen() {
     setFields(newFields);
     updateProfileSettings(profile.id, { fields: newFields });
     setEditingFieldKey(`${newField.category}-${newField.id}`);
-    setEditingMaxStr('10');
+    setEditingMaxStr('5');
   };
 
   const handleDragStart = (e: React.DragEvent, field: FieldConfig) => {
@@ -149,7 +149,7 @@ export default function SettingsScreen() {
                 <button 
                   onClick={() => {
                     setEditingFieldKey(fieldKey);
-                    setEditingMaxStr(field.max?.toString() || '10');
+                    setEditingMaxStr(field.max?.toString() || '5');
                   }} 
                   className="text-zinc-500 hover:text-indigo-400"
                 >
@@ -171,13 +171,22 @@ export default function SettingsScreen() {
       );
     }
 
-    const isMaxInvalid = editingMaxStr !== '' && (isNaN(parseInt(editingMaxStr, 10)) || parseInt(editingMaxStr, 10) < 5);
+    const isMaxInvalid = field.type === 'slider' && (editingMaxStr === '' || isNaN(parseInt(editingMaxStr, 10)) || parseInt(editingMaxStr, 10) < 5);
 
     return (
       <div ref={newFieldRef} className="bg-zinc-900 border border-indigo-500/50 p-4 rounded-xl space-y-3">
         <div className="flex justify-between items-center mb-2">
           <h4 className="text-sm font-semibold text-indigo-400">Edit Field</h4>
-          <button onClick={() => setEditingFieldKey(null)} className="text-zinc-500 hover:text-zinc-300 bg-zinc-800 p-1.5 rounded-md">
+          <button 
+            onClick={() => {
+              if (isMaxInvalid) return;
+              setEditingFieldKey(null);
+            }} 
+            className={clsx(
+              "p-1.5 rounded-md transition-colors",
+              isMaxInvalid ? "text-rose-500 bg-rose-500/10 cursor-not-allowed" : "text-zinc-500 hover:text-zinc-300 bg-zinc-800"
+            )}
+          >
             <Check size={16} />
           </button>
         </div>

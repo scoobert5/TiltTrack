@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { FieldConfig } from '../types';
-import { Settings, Plus, ToggleLeft, ToggleRight, Edit2, X, Check, GripVertical } from 'lucide-react';
+import { Settings, Plus, ToggleLeft, ToggleRight, Edit2, X, Check, GripVertical, ChevronRight, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function SettingsScreen() {
@@ -9,6 +9,10 @@ export default function SettingsScreen() {
   
   const profile = profiles.find(p => p.id === activeProfileId);
   const [fields, setFields] = useState<FieldConfig[]>(profile?.settings.fields || []);
+  
+  const [activeView, setActiveView] = useState<'hub' | 'slider-editor'>('hub');
+  const [sliderTab, setSliderTab] = useState<'pre-game' | 'post-game'>('pre-game');
+
   const [editingFieldKey, setEditingFieldKey] = useState<string | null>(null);
   const [editingMaxStr, setEditingMaxStr] = useState<string>('');
   const newFieldRef = useRef<HTMLDivElement>(null);
@@ -206,90 +210,123 @@ export default function SettingsScreen() {
     );
   };
 
+  if (activeView === 'slider-editor') {
+    return (
+      <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
+        <header className="mb-8 flex items-center space-x-3">
+          <button onClick={() => setActiveView('hub')} className="text-zinc-400 hover:text-zinc-200">
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-2xl font-bold text-zinc-100">Slider Editor</h1>
+        </header>
+
+        <div className="flex bg-zinc-900 rounded-xl p-1 border border-zinc-800 mb-6">
+          <button
+            onClick={() => setSliderTab('pre-game')}
+            className={clsx(
+              'flex-1 py-2 text-sm font-medium rounded-lg transition-all',
+              sliderTab === 'pre-game' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-500 hover:text-zinc-300'
+            )}
+          >
+            Pre-Game
+          </button>
+          <button
+            onClick={() => setSliderTab('post-game')}
+            className={clsx(
+              'flex-1 py-2 text-sm font-medium rounded-lg transition-all',
+              sliderTab === 'post-game' ? 'bg-indigo-600 text-white shadow-md' : 'text-zinc-500 hover:text-zinc-300'
+            )}
+          >
+            Post-Game
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-end mb-4">
+            <button 
+              onClick={() => addField(sliderTab)}
+              className={clsx(
+                "text-xs font-medium px-3 py-1.5 rounded-full flex items-center space-x-1",
+                sliderTab === 'pre-game' ? "text-indigo-400 hover:text-indigo-300 bg-indigo-500/10" : "text-rose-400 hover:text-rose-300 bg-rose-500/10"
+              )}
+            >
+              <Plus size={14} />
+              <span>Add Field</span>
+            </button>
+          </div>
+          {fields.filter(f => f.category === sliderTab).map(field => (
+            <React.Fragment key={`${field.category}-${field.id}`}>
+              {renderFieldEditor(field)}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
       <header className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Configuration Hub</h1>
-          <p className="text-sm text-zinc-500">Manage your tracking fields and settings</p>
+          <h1 className="text-2xl font-bold text-zinc-100">Settings</h1>
         </div>
       </header>
 
-      <div className="space-y-8">
-        {/* Field Layout Editor */}
-        <section>
-          <h2 className="text-xl font-bold text-zinc-100 mb-6">Field Layout Editor</h2>
-          
-          <div className="space-y-8">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-zinc-100 flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                  <span>Pre-Game Fields</span>
-                </h3>
-                <button 
-                  onClick={() => addField('pre-game')}
-                  className="text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-3 py-1.5 rounded-full flex items-center space-x-1"
-                >
-                  <Plus size={14} />
-                  <span>Add Field</span>
-                </button>
-              </div>
-              <div className="space-y-3">
-                {fields.filter(f => f.category === 'pre-game').map(field => (
-                  <React.Fragment key={`${field.category}-${field.id}`}>
-                    {renderFieldEditor(field)}
-                  </React.Fragment>
-                ))}
-              </div>
+      <div className="space-y-4">
+        <button className="w-full flex items-center justify-between bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:bg-zinc-800/50 transition-colors opacity-50 pointer-events-none">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
+              <Settings size={20} />
             </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-zinc-100 flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                  <span>Post-Game Fields</span>
-                </h3>
-                <button 
-                  onClick={() => addField('post-game')}
-                  className="text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-full flex items-center space-x-1"
-                >
-                  <Plus size={14} />
-                  <span>Add Field</span>
-                </button>
-              </div>
-              <div className="space-y-3">
-                {fields.filter(f => f.category === 'post-game').map(field => (
-                  <React.Fragment key={`${field.category}-${field.id}`}>
-                    {renderFieldEditor(field)}
-                  </React.Fragment>
-                ))}
-              </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-zinc-100">General Settings</h3>
+              <p className="text-xs text-zinc-500">Coming soon</p>
             </div>
           </div>
-        </section>
+          <ChevronRight size={20} className="text-zinc-600" />
+        </button>
 
-        {/* Future Sections Structure */}
-        <section className="opacity-50 pointer-events-none">
-          <h2 className="text-xl font-bold text-zinc-100 mb-4">Appearance</h2>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-center">
-            <span className="text-sm text-zinc-500">Coming soon</span>
+        <button 
+          onClick={() => setActiveView('slider-editor')}
+          className="w-full flex items-center justify-between bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:bg-zinc-800/50 transition-colors"
+        >
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+              <Edit2 size={20} />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-zinc-100">Slider Editor</h3>
+              <p className="text-xs text-zinc-500">Manage pre and post-game fields</p>
+            </div>
           </div>
-        </section>
+          <ChevronRight size={20} className="text-zinc-600" />
+        </button>
 
-        <section className="opacity-50 pointer-events-none">
-          <h2 className="text-xl font-bold text-zinc-100 mb-4">AI Settings</h2>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-center">
-            <span className="text-sm text-zinc-500">Coming soon</span>
+        <button className="w-full flex items-center justify-between bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:bg-zinc-800/50 transition-colors opacity-50 pointer-events-none">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
+              <Settings size={20} />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-zinc-100">Appearance</h3>
+              <p className="text-xs text-zinc-500">Coming soon</p>
+            </div>
           </div>
-        </section>
+          <ChevronRight size={20} className="text-zinc-600" />
+        </button>
 
-        <section className="opacity-50 pointer-events-none">
-          <h2 className="text-xl font-bold text-zinc-100 mb-4">General Settings</h2>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-center">
-            <span className="text-sm text-zinc-500">Coming soon</span>
+        <button className="w-full flex items-center justify-between bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:bg-zinc-800/50 transition-colors opacity-50 pointer-events-none">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
+              <Settings size={20} />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-zinc-100">AI Settings</h3>
+              <p className="text-xs text-zinc-500">Coming soon</p>
+            </div>
           </div>
-        </section>
+          <ChevronRight size={20} className="text-zinc-600" />
+        </button>
       </div>
     </div>
   );

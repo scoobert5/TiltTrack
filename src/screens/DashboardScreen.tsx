@@ -72,7 +72,6 @@ export default function DashboardScreen() {
       <header className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-zinc-100">{profile.name}</h1>
-          <p className="text-sm text-zinc-500">Dashboard</p>
         </div>
         <button 
           onClick={() => navigate('/profiles')}

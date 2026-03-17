@@ -26,22 +26,6 @@ export default function PreGameLogScreen() {
 
   const profileLogs = logs.filter((l) => l.profileId === profile?.id);
   const lastLog = profileLogs[profileLogs.length - 1];
-  
-  const renderReference = () => {
-    if (!lastLog) return null;
-    const { energy, mood, focus, confidence } = lastLog.preGameData;
-    if (energy === undefined && mood === undefined) return null;
-    
-    return (
-      <div className="mb-6 p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-400 flex flex-wrap gap-x-4 gap-y-2">
-        <span className="font-semibold text-zinc-300 w-full mb-1">Last Match Pre-Game:</span>
-        {energy !== undefined && <span>Energy: {energy}</span>}
-        {mood !== undefined && <span>Mood: {mood}</span>}
-        {focus !== undefined && <span>Focus: {focus}</span>}
-        {confidence !== undefined && <span>Confidence: {confidence}</span>}
-      </div>
-    );
-  };
 
   const handleChange = (id: string, value: any) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -68,11 +52,15 @@ export default function PreGameLogScreen() {
         <p className="text-sm text-zinc-500">How are you feeling before queuing?</p>
       </header>
 
-      {renderReference()}
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {preGameFields.map((field) => (
-          <FieldRenderer key={field.id} field={field} value={formData[field.id]} onChange={handleChange} />
+          <FieldRenderer 
+            key={field.id} 
+            field={field} 
+            value={formData[field.id]} 
+            previousValue={lastLog?.preGameData?.[field.id]}
+            onChange={handleChange} 
+          />
         ))}
 
         <button
@@ -87,12 +75,19 @@ export default function PreGameLogScreen() {
 }
 
 // Reusable Field Renderer Component
-export const FieldRenderer: React.FC<{ field: FieldConfig; value: any; onChange: (id: string, val: any) => void }> = ({ field, value, onChange }) => {
+export const FieldRenderer: React.FC<{ field: FieldConfig; value: any; previousValue?: any; onChange: (id: string, val: any) => void }> = ({ field, value, previousValue, onChange }) => {
   if (field.type === 'slider') {
     return (
       <div className="flex flex-col space-y-3">
         <div className="flex justify-between items-center">
-          <label className="text-sm font-medium text-zinc-300">{field.label}</label>
+          <label className="text-sm font-medium text-zinc-300">
+            {field.label}
+            {previousValue !== undefined && (
+              <span className="ml-2 text-xs text-zinc-500 font-normal">
+                (Last match: {previousValue})
+              </span>
+            )}
+          </label>
           <span className="text-lg font-bold text-indigo-400">{value}</span>
         </div>
         <input
@@ -115,7 +110,14 @@ export const FieldRenderer: React.FC<{ field: FieldConfig; value: any; onChange:
   if (field.type === 'segmented') {
     return (
       <div className="flex flex-col space-y-3">
-        <label className="text-sm font-medium text-zinc-300">{field.label}</label>
+        <label className="text-sm font-medium text-zinc-300">
+          {field.label}
+          {previousValue !== undefined && (
+            <span className="ml-2 text-xs text-zinc-500 font-normal">
+              (Last match: {previousValue})
+            </span>
+          )}
+        </label>
         <div className="flex bg-zinc-900 rounded-xl p-1 border border-zinc-800">
           {field.options?.map((opt, idx) => {
             // If options are strings, value might be index or string depending on setup.

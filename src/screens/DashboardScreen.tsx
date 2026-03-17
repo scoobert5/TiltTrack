@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { calculateRiskScore } from '../services/riskService';
 import { generateInsights } from '../services/insightService';
-import { Activity, ArrowRight, BrainCircuit, Target, Trophy } from 'lucide-react';
+import { Activity, ArrowRight, BrainCircuit, Target, Trophy, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function DashboardScreen() {
@@ -21,8 +21,6 @@ export default function DashboardScreen() {
     let wins = 0;
     let losses = 0;
     let draws = 0;
-    let totalTilt = 0;
-    let tiltCount = 0;
     
     profileLogs.forEach(log => {
       if (log.postGameData) {
@@ -30,11 +28,6 @@ export default function DashboardScreen() {
         if (log.postGameData.outcome === 'Win') wins++;
         else if (log.postGameData.outcome === 'Loss') losses++;
         else if (log.postGameData.outcome === 'Draw') draws++;
-
-        if (log.postGameData.derivedTilt !== undefined) {
-          totalTilt += log.postGameData.derivedTilt;
-          tiltCount++;
-        }
       }
     });
 
@@ -43,8 +36,7 @@ export default function DashboardScreen() {
       wins,
       losses,
       draws,
-      winRate: total > 0 ? Math.round((wins / total) * 100) : 0,
-      avgTilt: tiltCount > 0 ? (totalTilt / tiltCount).toFixed(1) : '-',
+      winRate: (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0,
     };
   }, [profileLogs]);
 
@@ -61,6 +53,17 @@ export default function DashboardScreen() {
     if (hoursSinceLastLog > 24) return 'warning';
     return 'ok';
   }, [profileLogs]);
+
+  const latestTilt = useMemo(() => {
+    const logsWithTilt = profileLogs.filter(l => l.postGameData?.derivedTilt !== undefined);
+    if (logsWithTilt.length === 0) return null;
+    return logsWithTilt[logsWithTilt.length - 1].postGameData!.derivedTilt!;
+  }, [profileLogs]);
+
+  const tiltPercentage = latestTilt !== null ? Math.round((latestTilt / 10) * 100) : null;
+  const tiltLabel = tiltPercentage !== null 
+    ? (tiltPercentage < 30 ? 'Low' : tiltPercentage < 70 ? 'Moderate' : 'High')
+    : 'No Data';
 
   if (!profile) return null;
 
@@ -105,96 +108,153 @@ export default function DashboardScreen() {
         </div>
       )}
 
-      {/* Risk Score Card */}
-      <section className={clsx("mb-8", stateRefreshStatus === 'reset_required' && 'opacity-50 pointer-events-none')}>
+      {/* 1. Tilt Card (NEW - HIGHEST PRIORITY) */}
+      <section className="mb-6">
         <div className={clsx(
-          "rounded-2xl p-6 border relative overflow-hidden",
-          riskResult.score === 'Low' ? 'bg-emerald-950/30 border-emerald-900/50' :
-          riskResult.score === 'Medium' ? 'bg-amber-950/30 border-amber-900/50' :
-          'bg-rose-950/30 border-rose-900/50'
+          "rounded-3xl p-6 border relative overflow-hidden flex flex-col items-center justify-center text-center",
+          tiltPercentage === null ? 'bg-zinc-900 border-zinc-800' :
+          tiltPercentage < 30 ? 'bg-emerald-950/40 border-emerald-900/50' :
+          tiltPercentage < 70 ? 'bg-amber-950/40 border-amber-900/50' :
+          'bg-rose-950/40 border-rose-900/50'
         )}>
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">Queue Risk</p>
-              <h2 className={clsx(
-                "text-4xl font-black tracking-tight",
+          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Current Tilt Level</p>
+          <div className="flex items-baseline space-x-1 mb-1">
+            <h2 className={clsx(
+              "text-6xl font-black tracking-tighter",
+              tiltPercentage === null ? 'text-zinc-500' :
+              tiltPercentage < 30 ? 'text-emerald-400' :
+              tiltPercentage < 70 ? 'text-amber-400' :
+              'text-rose-400'
+            )}>
+              {tiltPercentage !== null ? tiltPercentage : '--'}
+            </h2>
+            <span className={clsx(
+              "text-2xl font-bold",
+              tiltPercentage === null ? 'text-zinc-600' :
+              tiltPercentage < 30 ? 'text-emerald-500/50' :
+              tiltPercentage < 70 ? 'text-amber-500/50' :
+              'text-rose-500/50'
+            )}>%</span>
+          </div>
+          <div className={clsx(
+            "text-sm font-medium px-3 py-1 rounded-full mt-2",
+            tiltPercentage === null ? 'bg-zinc-800 text-zinc-400' :
+            tiltPercentage < 30 ? 'bg-emerald-500/20 text-emerald-300' :
+            tiltPercentage < 70 ? 'bg-amber-500/20 text-amber-300' :
+            'bg-rose-500/20 text-rose-300'
+          )}>
+            {tiltLabel}
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Queue Risk (existing) */}
+      <section className={clsx("mb-6", stateRefreshStatus === 'reset_required' && 'opacity-50 pointer-events-none')}>
+        <div className={clsx(
+          "rounded-2xl p-5 border relative overflow-hidden flex items-center justify-between",
+          riskResult.score === 'Low' ? 'bg-emerald-950/20 border-emerald-900/30' :
+          riskResult.score === 'Medium' ? 'bg-amber-950/20 border-amber-900/30' :
+          'bg-rose-950/20 border-rose-900/30'
+        )}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1">Queue Risk</p>
+            <div className="flex items-center space-x-2">
+              <h3 className={clsx(
+                "text-xl font-bold",
                 riskResult.score === 'Low' ? 'text-emerald-400' :
                 riskResult.score === 'Medium' ? 'text-amber-400' :
                 'text-rose-400'
               )}>
                 {riskResult.score}
-              </h2>
+              </h3>
             </div>
-            <Activity className={clsx(
-              "w-8 h-8 opacity-50",
-              riskResult.score === 'Low' ? 'text-emerald-400' :
-              riskResult.score === 'Medium' ? 'text-amber-400' :
-              'text-rose-400'
-            )} />
+            <p className="text-xs text-zinc-400 mt-1 max-w-[200px]">{riskResult.explanation}</p>
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{riskResult.explanation}</p>
-          
-          {pendingLog ? (
-            <button 
-              onClick={() => navigate(`/log/post/${pendingLog.id}`)}
-              className="mt-6 w-full py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-colors bg-indigo-500 hover:bg-indigo-600 text-white"
-            >
-              <span>Log Post-Game State</span>
-              <ArrowRight size={18} />
-            </button>
-          ) : (
-            <button 
-              onClick={() => navigate('/log/pre')}
-              className={clsx(
-                "mt-6 w-full py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-colors",
-                riskResult.score === 'Low' ? 'bg-emerald-500 hover:bg-emerald-600 text-zinc-950' :
-                riskResult.score === 'Medium' ? 'bg-amber-500 hover:bg-amber-600 text-zinc-950' :
-                'bg-rose-500 hover:bg-rose-600 text-zinc-950'
-              )}
-            >
-              <span>Log Pre-Game State</span>
-              <ArrowRight size={18} />
-            </button>
-          )}
+          <AlertTriangle className={clsx(
+            "w-10 h-10 opacity-20",
+            riskResult.score === 'Low' ? 'text-emerald-400' :
+            riskResult.score === 'Medium' ? 'text-amber-400' :
+            'text-rose-400'
+          )} />
         </div>
       </section>
 
-      {/* Stats Grid */}
-      <section className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col">
-          <div className="flex items-center space-x-2 text-zinc-400 mb-2">
+      {/* 3. Performance Block */}
+      <section className="mb-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+          <div className="flex items-center space-x-2 text-zinc-400 mb-4">
             <Trophy size={16} />
-            <span className="text-xs font-medium uppercase tracking-wider">Win Rate</span>
+            <span className="text-xs font-medium uppercase tracking-wider">Performance</span>
           </div>
-          <div className="text-2xl font-bold text-zinc-100">{stats.winRate}%</div>
-          <div className="text-xs text-zinc-500 mt-1">{stats.wins}W - {stats.losses}L - {stats.draws}D</div>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col">
-          <div className="flex items-center space-x-2 text-zinc-400 mb-2">
-            <Target size={16} />
-            <span className="text-xs font-medium uppercase tracking-wider">Avg Tilt</span>
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-3xl font-bold text-zinc-100">{stats.winRate}%</div>
+              <div className="text-xs text-zinc-500 mt-1 uppercase tracking-wider font-semibold">Win Rate</div>
+            </div>
+            <div className="flex space-x-4 text-center">
+              <div>
+                <div className="text-xl font-bold text-emerald-400">{stats.wins}</div>
+                <div className="text-[10px] text-zinc-500 uppercase font-bold">W</div>
+              </div>
+              <div>
+                <div className="text-xl font-bold text-rose-400">{stats.losses}</div>
+                <div className="text-[10px] text-zinc-500 uppercase font-bold">L</div>
+              </div>
+              <div>
+                <div className="text-xl font-bold text-zinc-400">{stats.draws}</div>
+                <div className="text-[10px] text-zinc-500 uppercase font-bold">D</div>
+              </div>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-zinc-100">{stats.avgTilt} <span className="text-sm font-normal text-zinc-500">/ 10</span></div>
-          <div className="text-xs text-zinc-500 mt-1">Derived from logs</div>
         </div>
       </section>
 
-      {/* Top Insight */}
-      <section>
-        <div className="flex items-center space-x-2 mb-4">
-          <BrainCircuit size={18} className="text-indigo-400" />
-          <h3 className="text-sm font-semibold text-zinc-100 uppercase tracking-wider">Latest Insight</h3>
+      {/* 4. Insights Preview */}
+      <section className="mb-6">
+        <div className="flex items-center space-x-2 mb-3">
+          <BrainCircuit size={16} className="text-indigo-400" />
+          <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Recent Insights</h3>
         </div>
         
         {insights.length > 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-            <h4 className="font-medium text-zinc-100 mb-1">{insights[0].title}</h4>
-            <p className="text-sm text-zinc-400 leading-relaxed">{insights[0].description}</p>
+          <div className="space-y-3">
+            {insights.slice(0, 2).map((insight, idx) => (
+              <div key={idx} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                <h4 className="text-sm font-medium text-zinc-200 mb-1">{insight.title}</h4>
+                <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">{insight.description}</p>
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="bg-zinc-900 border border-zinc-800 border-dashed rounded-2xl p-5 text-center">
-            <p className="text-sm text-zinc-500">Play more matches to generate insights.</p>
+          <div className="bg-zinc-900 border border-zinc-800 border-dashed rounded-xl p-4 text-center">
+            <p className="text-xs text-zinc-500">Play more matches to generate insights.</p>
           </div>
+        )}
+      </section>
+
+      {/* 5. Logging Controls */}
+      <section className={clsx("mt-auto", stateRefreshStatus === 'reset_required' && 'opacity-50 pointer-events-none')}>
+        {pendingLog ? (
+          <button 
+            onClick={() => navigate(`/log/post/${pendingLog.id}`)}
+            className="w-full py-4 rounded-2xl font-bold flex items-center justify-center space-x-2 transition-colors bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+          >
+            <span>Log Post-Game State</span>
+            <ArrowRight size={20} />
+          </button>
+        ) : (
+          <button 
+            onClick={() => navigate('/log/pre')}
+            className={clsx(
+              "w-full py-4 rounded-2xl font-bold flex items-center justify-center space-x-2 transition-colors shadow-lg",
+              riskResult.score === 'Low' ? 'bg-emerald-500 hover:bg-emerald-600 text-zinc-950 shadow-emerald-500/20' :
+              riskResult.score === 'Medium' ? 'bg-amber-500 hover:bg-amber-600 text-zinc-950 shadow-amber-500/20' :
+              'bg-rose-500 hover:bg-rose-600 text-zinc-950 shadow-rose-500/20'
+            )}
+          >
+            <span>Log Pre-Game State</span>
+            <ArrowRight size={20} />
+          </button>
         )}
       </section>
     </div>

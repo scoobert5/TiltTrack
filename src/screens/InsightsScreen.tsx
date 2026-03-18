@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { generateInsights } from '../services/insightService';
-import { BrainCircuit, TrendingDown, TrendingUp, AlertCircle, StickyNote } from 'lucide-react';
+import { BrainCircuit, TrendingDown, TrendingUp, AlertCircle, StickyNote, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import { AppHeader } from '../components/AppHeader';
 import { getProfileNotesSummary } from '../lib/notes';
+import { getProfileAIContext } from '../lib/aiContext';
 import { format } from 'date-fns';
 
 export default function InsightsScreen() {
@@ -15,6 +16,7 @@ export default function InsightsScreen() {
   
   const insights = useMemo(() => generateInsights(profileLogs), [profileLogs]);
   const notesSummary = useMemo(() => getProfileNotesSummary(logs, activeProfileId!), [logs, activeProfileId]);
+  const aiContext = useMemo(() => getProfileAIContext(logs, activeProfileId!), [logs, activeProfileId]);
 
   if (!profile) return null;
 
@@ -92,6 +94,26 @@ export default function InsightsScreen() {
             No insights available yet.
           </div>
         )}
+
+        {/* AI Readiness Block */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+          <div className="flex items-center space-x-3 mb-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-500/10 text-indigo-400">
+              <Sparkles size={16} />
+            </div>
+            <h3 className="font-semibold text-zinc-100">AI Foundation</h3>
+          </div>
+          <div className="ml-11 space-y-1">
+            {aiContext.hasEnoughData ? (
+              <p className="text-sm text-emerald-400">Enough data collected for future reflection features.</p>
+            ) : (
+              <p className="text-sm text-zinc-400">Collecting data for future reflection features...</p>
+            )}
+            <p className="text-xs text-zinc-500">
+              {aiContext.totalLogs} total matches • {aiContext.totalLogsWithNotes} recent notes available
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -22,10 +22,22 @@ export default function NotesScreen() {
   const { activeProfileId, profiles, logs } = useStore();
   const profile = profiles.find(p => p.id === activeProfileId);
 
-  const notesLogs = useMemo(() => {
-    return logs
-      .filter(l => l.profileId === activeProfileId && hasValidNote(l))
+  const { notesLogs, gameNumbers } = useMemo(() => {
+    const profileLogs = logs.filter(l => l.profileId === activeProfileId);
+    
+    // Sort all logs ascending to assign chronological game numbers
+    const sortedAll = [...profileLogs].sort((a, b) => a.timestamp - b.timestamp);
+    const gameNumbers = new Map<string, number>();
+    sortedAll.forEach((log, index) => {
+      gameNumbers.set(log.id, index + 1);
+    });
+
+    // Filter and sort the notes logs descending for display
+    const notesLogs = profileLogs
+      .filter(hasValidNote)
       .sort((a, b) => b.timestamp - a.timestamp);
+
+    return { notesLogs, gameNumbers };
   }, [logs, activeProfileId]);
 
   if (!profile) return null;
@@ -45,12 +57,17 @@ export default function NotesScreen() {
             const badge = getOutcomeBadge(log.postGameData?.outcome);
             return (
               <div key={log.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    {format(log.timestamp, 'MMM d, h:mm a')}
-                  </span>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-zinc-200">
+                      Game #{gameNumbers.get(log.id)}
+                    </span>
+                    <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider mt-0.5">
+                      {format(log.timestamp, 'MMM d, h:mm a')}
+                    </span>
+                  </div>
                   <div className={clsx(
-                    "w-6 h-6 rounded flex items-center justify-center text-xs font-bold border",
+                    "w-6 h-6 rounded flex items-center justify-center text-xs font-bold border shrink-0 ml-4",
                     badge.color
                   )}>
                     {badge.label}

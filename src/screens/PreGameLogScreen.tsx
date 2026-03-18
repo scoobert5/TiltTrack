@@ -33,11 +33,9 @@ export default function PreGameLogScreen() {
   const lastLog = profileLogs[profileLogs.length - 1];
 
   const handleChange = (id: string, value: any) => {
-    setFormData((prev) => {
-      const next = { ...prev, [id]: value };
-      setPreGameDraft(next);
-      return next;
-    });
+    const next = { ...formData, [id]: value };
+    setFormData(next);
+    setPreGameDraft(next);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

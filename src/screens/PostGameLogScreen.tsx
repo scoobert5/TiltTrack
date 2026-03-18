@@ -29,11 +29,9 @@ export default function PostGameLogScreen() {
   }, [profile]); // Intentionally omitting postGameDraft from dependencies to only run on mount/profile change
 
   const handleChange = (id: string, value: any) => {
-    setFormData((prev) => {
-      const next = { ...prev, [id]: value };
-      setPostGameDraft(next);
-      return next;
-    });
+    const next = { ...formData, [id]: value };
+    setFormData(next);
+    setPostGameDraft(next);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

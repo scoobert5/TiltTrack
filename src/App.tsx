@@ -9,6 +9,7 @@ import PostGameLogScreen from './screens/PostGameLogScreen';
 import InsightsScreen from './screens/InsightsScreen';
 import RawDataScreen from './screens/RawDataScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import NotesScreen from './screens/NotesScreen';
 
 export default function App() {
   const activeProfileId = useStore((state) => state.activeProfileId);
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/log/pre" element={activeProfileId ? <PreGameLogScreen /> : <Navigate to="/" />} />
               <Route path="/log/post/:logId" element={activeProfileId ? <PostGameLogScreen /> : <Navigate to="/" />} />
               <Route path="/insights" element={activeProfileId ? <InsightsScreen /> : <Navigate to="/" />} />
+              <Route path="/notes" element={activeProfileId ? <NotesScreen /> : <Navigate to="/" />} />
               <Route path="/data" element={activeProfileId ? <RawDataScreen /> : <Navigate to="/" />} />
               <Route path="/settings" element={activeProfileId ? <SettingsScreen /> : <Navigate to="/" />} />
             </Route>

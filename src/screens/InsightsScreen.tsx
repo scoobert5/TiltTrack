@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { generateInsights } from '../services/insightService';
-import { BrainCircuit, TrendingDown, TrendingUp, AlertCircle } from 'lucide-react';
+import { BrainCircuit, TrendingDown, TrendingUp, AlertCircle, StickyNote } from 'lucide-react';
 import clsx from 'clsx';
 import { AppHeader } from '../components/AppHeader';
+import { getProfileNotesSummary } from '../lib/notes';
+import { format } from 'date-fns';
 
 export default function InsightsScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -12,6 +14,7 @@ export default function InsightsScreen() {
   const profileLogs = logs.filter(l => l.profileId === activeProfileId);
   
   const insights = useMemo(() => generateInsights(profileLogs), [profileLogs]);
+  const notesSummary = useMemo(() => getProfileNotesSummary(logs, activeProfileId!), [logs, activeProfileId]);
 
   if (!profile) return null;
 
@@ -20,6 +23,41 @@ export default function InsightsScreen() {
       <AppHeader title="Insights" />
 
       <div className="space-y-4">
+        {/* Notes Summary Block */}
+        {notesSummary.hasNotes && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-500/20 text-indigo-400">
+                <StickyNote size={16} />
+              </div>
+              <h3 className="font-semibold text-zinc-100">Notes Logged: {notesSummary.totalNotes}</h3>
+            </div>
+            
+            <div className="space-y-3">
+              {notesSummary.recentNotes.map((noteEntry) => (
+                <div key={noteEntry.logId} className="bg-zinc-950/50 rounded-xl p-3 border border-zinc-800/50">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-zinc-500 uppercase tracking-wider">
+                      {format(noteEntry.timestamp, 'MMM d, h:mm a')}
+                    </span>
+                    {noteEntry.outcome && (
+                      <span className={clsx(
+                        "text-[10px] font-bold px-1.5 py-0.5 rounded border",
+                        noteEntry.outcome === 'Win' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        noteEntry.outcome === 'Loss' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                        'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                      )}>
+                        {noteEntry.outcome === 'Win' ? 'W' : noteEntry.outcome === 'Loss' ? 'L' : 'D'}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-zinc-300 line-clamp-2">{noteEntry.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {insights.map((insight) => (
           <div 
             key={insight.id}

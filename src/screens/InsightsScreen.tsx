@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { generateInsights } from '../services/insightService';
 import { BrainCircuit, TrendingDown, TrendingUp, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
+import { AppHeader } from '../components/AppHeader';
 
 export default function InsightsScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -16,9 +17,7 @@ export default function InsightsScreen() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-100">Insights</h1>
-      </header>
+      <AppHeader title="Insights" />
 
       <div className="space-y-4">
         {insights.map((insight) => (

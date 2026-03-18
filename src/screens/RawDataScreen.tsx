@@ -2,6 +2,7 @@ import React from 'react';
 import { useStore } from '../store/useStore';
 import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
+import { AppHeader } from '../components/AppHeader';
 
 export default function RawDataScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -13,9 +14,7 @@ export default function RawDataScreen() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-100">Raw Data</h1>
-      </header>
+      <AppHeader title="Raw Data" />
 
       <div className="space-y-4">
         {profileLogs.length === 0 ? (

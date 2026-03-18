@@ -4,6 +4,7 @@ import { FieldConfig } from '../types';
 import { Settings, Plus, ToggleLeft, ToggleRight, Edit2, X, Check, GripVertical, ChevronRight, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
 import { defaultPreGameFields, defaultPostGameFields } from '../config/defaultFields';
+import { AppHeader } from '../components/AppHeader';
 
 export default function SettingsScreen() {
   const { activeProfileId, profiles, updateProfileSettings } = useStore();
@@ -20,6 +21,16 @@ export default function SettingsScreen() {
 
   const [draggedField, setDraggedField] = useState<{ id: string, category: string } | null>(null);
   const [dragOverField, setDragOverField] = useState<{ id: string, category: string } | null>(null);
+
+  useEffect(() => {
+    if (profile) {
+      setFields(profile.settings.fields);
+      setEditingFieldKey(null);
+      setEditingMaxStr('');
+      setDraggedField(null);
+      setDragOverField(null);
+    }
+  }, [activeProfileId]);
 
   useEffect(() => {
     if (editingFieldKey && newFieldRef.current) {
@@ -317,11 +328,7 @@ export default function SettingsScreen() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
-      <header className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Settings</h1>
-        </div>
-      </header>
+      <AppHeader title="Settings" />
 
       <div className="space-y-4">
         <button className="w-full flex items-center justify-between bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:bg-zinc-800/50 transition-colors opacity-50 pointer-events-none">

@@ -16,47 +16,56 @@ export const calculateRiskScore = (recentLogs: LogEntry[]): RiskResult => {
   const logs = recentLogs.slice(-5);
   
   let lossStreak = 0;
-  let lowEnergyCount = 0;
-  let recentHighTilt = false;
-
   for (let i = logs.length - 1; i >= 0; i--) {
-    const log = logs[i];
-    const pre = log.preGameData;
-    const post = log.postGameData;
-
-    if (pre.energy && pre.energy <= 3) lowEnergyCount += 1;
-
+    const post = logs[i].postGameData;
     if (post) {
       if (post.outcome === 'Loss') {
         lossStreak += 1;
-      } else if (post.outcome === 'Win') {
-        lossStreak = 0; // Reset streak on win
-      }
-      
-      if (post.derivedTilt && post.derivedTilt >= 7) {
-        recentHighTilt = true;
+      } else {
+        break;
       }
     }
   }
 
-  const latestPre = logs[logs.length - 1].preGameData;
-  const preMood = latestPre.mood || 5;
-  const preFocus = latestPre.focus || 5;
-  const preConfidence = latestPre.confidence || 5;
-  const preEnergy = latestPre.energy || 5;
+  const last3Posts = logs.map(l => l.postGameData).filter(Boolean).slice(-3);
+  const recentHighTilt = last3Posts.some(p => p!.derivedTilt && p!.derivedTilt >= 65);
+  const recentFrustrationTrend = last3Posts.filter(p => p!.frustration && p!.frustration >= 4).length;
+
+  const latestLog = logs[logs.length - 1];
+  const latestPre = latestLog.preGameData;
+  const latestPost = latestLog.postGameData;
   
-  const preVulnerability = ((10 - preMood) + (10 - preFocus) + (10 - preConfidence)) / 3;
+  // 1. Tilt Level (Primary Factor)
+  let currentTilt = 0;
+  if (latestPost && latestPost.derivedTilt !== undefined) {
+    currentTilt = latestPost.derivedTilt;
+  } else if (logs.length > 1) {
+    const prevPost = logs[logs.length - 2].postGameData;
+    if (prevPost && prevPost.derivedTilt !== undefined) {
+      currentTilt = prevPost.derivedTilt;
+    }
+  }
+
+  // 2. Vulnerability / Instability Signals
+  const preMood = Number(latestPre.mood) || 3;
+  const preFocus = Number(latestPre.focus) || 3;
+  const preConfidence = Number(latestPre.confidence) || 3;
+  const preEnergy = Number(latestPre.energy) || 3;
+  
+  // 1-5 scale, lower is more vulnerable. 
+  // (6 - value) / 5 gives 20% for 5, 100% for 1
+  const preVulnerability = ((6 - preMood) + (6 - preFocus) + (6 - preConfidence)) / 15 * 100;
   
   // High Risk Conditions
-  if (preVulnerability >= 7 || lossStreak >= 3 || (preEnergy <= 3 && preMood <= 3)) {
+  if (currentTilt >= 65 || lossStreak >= 3 || preVulnerability >= 80 || (preEnergy <= 2 && preMood <= 2)) {
     return {
       score: 'High',
-      explanation: 'High vulnerability or loss streak detected. Consider taking a break.',
+      explanation: 'High tilt or vulnerability detected. Consider taking a break.',
     };
   }
 
   // Medium Risk Conditions
-  if (preVulnerability >= 5 || lossStreak >= 2 || lowEnergyCount >= 2 || recentHighTilt) {
+  if (currentTilt >= 35 || lossStreak >= 2 || preVulnerability >= 60 || recentHighTilt || recentFrustrationTrend >= 2) {
     return {
       score: 'Medium',
       explanation: 'Moderate risk. Stay focused and monitor your frustration.',

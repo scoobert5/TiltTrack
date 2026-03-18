@@ -61,9 +61,9 @@ export default function DashboardScreen() {
     return logsWithTilt[logsWithTilt.length - 1].postGameData!.derivedTilt!;
   }, [profileLogs]);
 
-  const tiltPercentage = latestTilt !== null ? Math.round((latestTilt / 10) * 100) : null;
+  const tiltPercentage = latestTilt !== null ? Math.round(latestTilt) : null;
   const tiltLabel = tiltPercentage !== null 
-    ? (tiltPercentage < 30 ? 'Low' : tiltPercentage < 70 ? 'Moderate' : 'High')
+    ? (tiltPercentage < 35 ? 'Low' : tiltPercentage < 65 ? 'Moderate' : 'High')
     : 'No Data';
 
   if (!profile) return null;
@@ -155,8 +155,8 @@ export default function DashboardScreen() {
         <div className={clsx(
           "rounded-3xl p-6 border relative overflow-hidden flex flex-col items-center justify-center text-center",
           tiltPercentage === null ? 'bg-zinc-900 border-zinc-800' :
-          tiltPercentage < 30 ? 'bg-emerald-950/40 border-emerald-900/50' :
-          tiltPercentage < 70 ? 'bg-amber-950/40 border-amber-900/50' :
+          tiltPercentage < 35 ? 'bg-emerald-950/40 border-emerald-900/50' :
+          tiltPercentage < 65 ? 'bg-amber-950/40 border-amber-900/50' :
           'bg-rose-950/40 border-rose-900/50'
         )}>
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Current Tilt Level</p>
@@ -164,8 +164,8 @@ export default function DashboardScreen() {
             <h2 className={clsx(
               "text-6xl font-black tracking-tighter",
               tiltPercentage === null ? 'text-zinc-500' :
-              tiltPercentage < 30 ? 'text-emerald-400' :
-              tiltPercentage < 70 ? 'text-amber-400' :
+              tiltPercentage < 35 ? 'text-emerald-400' :
+              tiltPercentage < 65 ? 'text-amber-400' :
               'text-rose-400'
             )}>
               {tiltPercentage !== null ? tiltPercentage : '--'}
@@ -173,16 +173,16 @@ export default function DashboardScreen() {
             <span className={clsx(
               "text-2xl font-bold",
               tiltPercentage === null ? 'text-zinc-600' :
-              tiltPercentage < 30 ? 'text-emerald-500/50' :
-              tiltPercentage < 70 ? 'text-amber-500/50' :
+              tiltPercentage < 35 ? 'text-emerald-500/50' :
+              tiltPercentage < 65 ? 'text-amber-500/50' :
               'text-rose-500/50'
             )}>%</span>
           </div>
           <div className={clsx(
             "text-sm font-medium px-3 py-1 rounded-full mt-2",
             tiltPercentage === null ? 'bg-zinc-800 text-zinc-400' :
-            tiltPercentage < 30 ? 'bg-emerald-500/20 text-emerald-300' :
-            tiltPercentage < 70 ? 'bg-amber-500/20 text-amber-300' :
+            tiltPercentage < 35 ? 'bg-emerald-500/20 text-emerald-300' :
+            tiltPercentage < 65 ? 'bg-amber-500/20 text-amber-300' :
             'bg-rose-500/20 text-rose-300'
           )}>
             {tiltLabel}

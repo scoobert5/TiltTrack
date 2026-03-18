@@ -36,8 +36,8 @@ export const generateInsights = (logs: LogEntry[]): Insight[] => {
     if (post.outcome === 'Win') totalWins++;
     if (post.outcome === 'Loss') {
       totalLosses++;
-      if (post.derivedTilt && post.derivedTilt >= 6) highTiltLosses++;
-      if (pre.energy && pre.energy <= 4) lowEnergyLosses++;
+      if (post.derivedTilt && post.derivedTilt >= 60) highTiltLosses++;
+      if (pre.energy && pre.energy <= 2) lowEnergyLosses++;
     }
   });
 

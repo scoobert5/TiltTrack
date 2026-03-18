@@ -58,7 +58,7 @@ export default function RawDataScreen() {
                       <li>Mood: <span className="font-mono text-indigo-400">{log.postGameData.mood}</span></li>
                       <li>Frustration: <span className="font-mono text-indigo-400">{log.postGameData.frustration}</span></li>
                       {log.postGameData.derivedTilt !== undefined && (
-                        <li>Tilt: <span className="font-mono text-amber-400">{log.postGameData.derivedTilt} ({log.postGameData.tiltLabel})</span></li>
+                        <li>Tilt: <span className="font-mono text-amber-400">{log.postGameData.derivedTilt}% ({log.postGameData.tiltLabel})</span></li>
                       )}
                     </ul>
                   </div>

@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { AppHeader } from '../components/AppHeader';
 import clsx from 'clsx';
 import { getProfileLogs, getRecentProfileNoteLogs } from '../lib/notes';
-import { getOutcomeBadge } from '../lib/formatters';
+import { getOutcomeBadge, formatDuration } from '../lib/formatters';
 
 export default function NotesScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -52,6 +52,7 @@ export default function NotesScreen() {
                     </span>
                     <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider mt-0.5">
                       {format(log.timestamp, 'MMM d, h:mm a')}
+                      {log.matchDurationMs !== undefined && ` • ${formatDuration(log.matchDurationMs)}`}
                     </span>
                   </div>
                   <div className={clsx(

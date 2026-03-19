@@ -26,6 +26,7 @@ export interface ProfileNotesSummary {
     timestamp: number;
     outcome?: string;
     note: string;
+    matchDurationMs?: number;
   }>;
 }
 
@@ -40,7 +41,8 @@ export function getProfileNotesSummary(logs: LogEntry[], profileId: string): Pro
       logId: log.id,
       timestamp: log.timestamp,
       outcome: log.postGameData?.outcome,
-      note: log.postGameData!.note.trim()
+      note: log.postGameData!.note.trim(),
+      matchDurationMs: log.matchDurationMs
     }))
   };
 }

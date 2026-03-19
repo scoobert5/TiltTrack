@@ -50,6 +50,7 @@ export default function InsightsScreen() {
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs text-zinc-500 uppercase tracking-wider">
                       {format(noteEntry.timestamp, 'MMM d, h:mm a')}
+                      {noteEntry.matchDurationMs !== undefined && ` • ${formatDuration(noteEntry.matchDurationMs)}`}
                     </span>
                     {noteEntry.outcome && (
                       <span className={clsx(

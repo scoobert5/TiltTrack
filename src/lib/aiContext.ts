@@ -107,3 +107,83 @@ export function getProfileAIContext(logs: LogEntry[], profileId: string, options
     hasEnoughData
   };
 }
+
+export interface ReflectionPayload {
+  profileId: string;
+  generatedAt: number;
+
+  summary: {
+    totalCompletedMatches: number;
+    totalNotes: number;
+    averageMatchDurationMs?: number;
+  };
+
+  recentMatches: Array<{
+    logId: string;
+    timestamp: number;
+    outcome?: 'Win' | 'Loss' | 'Draw';
+    derivedTilt?: number;
+    tiltLabel?: string;
+    matchDurationMs?: number;
+    hasNote: boolean;
+  }>;
+
+  recentNotes: Array<{
+    logId: string;
+    timestamp: number;
+    note: string;
+    outcome?: 'Win' | 'Loss' | 'Draw';
+    derivedTilt?: number;
+    tiltLabel?: string;
+    matchDurationMs?: number;
+  }>;
+
+  metadata: {
+    hasEnoughData: boolean;
+    recentMatchCount: number;
+    recentNoteCount: number;
+  };
+}
+
+export function getReflectionPayload(logs: LogEntry[], profileId: string, options?: AIContextOptions): ReflectionPayload {
+  const recentMatchLimit = options?.recentMatchLimit ?? 10;
+  const recentNoteLimit = options?.recentNoteLimit ?? 5;
+  
+  const context = getProfileAIContext(logs, profileId, {
+    recentMatchLimit,
+    recentNoteLimit,
+  });
+
+  return {
+    profileId: context.profileId,
+    generatedAt: Date.now(),
+    summary: {
+      totalCompletedMatches: context.totalCompletedMatches,
+      totalNotes: context.totalLogsWithNotes,
+      averageMatchDurationMs: context.averageRecentMatchDurationMs,
+    },
+    recentMatches: context.recentMatches.map(match => ({
+      logId: match.logId,
+      timestamp: match.timestamp,
+      outcome: match.outcome,
+      derivedTilt: match.derivedTilt,
+      tiltLabel: match.tiltLabel,
+      matchDurationMs: match.matchDurationMs,
+      hasNote: match.note !== undefined,
+    })),
+    recentNotes: context.recentNotes.map(note => ({
+      logId: note.logId,
+      timestamp: note.timestamp,
+      note: note.note,
+      outcome: note.outcome,
+      derivedTilt: note.derivedTilt,
+      tiltLabel: note.tiltLabel,
+      matchDurationMs: note.matchDurationMs,
+    })),
+    metadata: {
+      hasEnoughData: context.hasEnoughData,
+      recentMatchCount: context.recentMatches.length,
+      recentNoteCount: context.recentNotes.length,
+    }
+  };
+}

@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
 import { formatDuration } from '../lib/formatters';
+import { getReflectionPayload } from '../lib/aiContext';
 
 export default function RawDataScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -13,9 +14,23 @@ export default function RawDataScreen() {
 
   if (!profile) return null;
 
+  const handleLogPayload = () => {
+    if (activeProfileId) {
+      const payload = getReflectionPayload(logs, activeProfileId);
+      console.log('Reflection Payload:', payload);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
       <AppHeader title="Raw Data" />
+
+      <button 
+        onClick={handleLogPayload}
+        className="mb-4 w-full py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-400 hover:bg-zinc-800 transition-colors"
+      >
+        Log Reflection Payload to Console
+      </button>
 
       <div className="space-y-4">
         {profileLogs.length === 0 ? (

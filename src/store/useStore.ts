@@ -154,6 +154,34 @@ export const useStore = create<AppState>()(
           };
         });
       },
+
+      cancelPendingLog: (logId) => {
+        set((state) => {
+          const log = state.logs.find(l => l.id === logId);
+          // Only cancel if it exists and has no postGameData
+          if (!log || log.postGameData) return state;
+
+          const newLogs = state.logs.filter(l => l.id !== logId);
+
+          // Clean up session
+          let newSessions = state.sessions.map(s => {
+            if (s.id === log.sessionId) {
+              return { ...s, logIds: s.logIds.filter(id => id !== logId) };
+            }
+            return s;
+          });
+
+          // Remove empty sessions
+          newSessions = newSessions.filter(s => s.logIds.length > 0);
+
+          return {
+            logs: newLogs,
+            sessions: newSessions,
+            // Clear post-game draft just in case they started filling it out
+            postGameDraft: state.activeProfileId === log.profileId ? null : state.postGameDraft,
+          };
+        });
+      },
     }),
     {
       name: 'tilttrack-storage',

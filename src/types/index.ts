@@ -65,4 +65,5 @@ export interface AppState {
   
   addPreGameLog: (profileId: string, data: Record<string, any>) => string; // returns logId
   addPostGameLog: (logId: string, data: Record<string, any>) => void;
+  cancelPendingLog: (logId: string) => void;
 }

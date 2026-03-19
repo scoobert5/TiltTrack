@@ -9,7 +9,7 @@ import { AppHeader } from '../components/AppHeader';
 
 export default function DashboardScreen() {
   const navigate = useNavigate();
-  const { activeProfileId, profiles, logs } = useStore();
+  const { activeProfileId, profiles, logs, cancelPendingLog } = useStore();
   
   const profile = profiles.find(p => p.id === activeProfileId);
   const profileLogs = logs.filter(l => l.profileId === activeProfileId);
@@ -225,13 +225,21 @@ export default function DashboardScreen() {
       {/* 5. Logging Controls */}
       <section className={clsx("mt-auto", stateRefreshStatus === 'reset_required' && 'opacity-50 pointer-events-none')}>
         {pendingLog ? (
-          <button 
-            onClick={() => navigate(`/log/post/${pendingLog.id}`)}
-            className="w-full py-4 rounded-2xl font-bold flex items-center justify-center space-x-2 transition-colors bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-          >
-            <span>Log Post-Game State</span>
-            <ArrowRight size={20} />
-          </button>
+          <div className="space-y-3">
+            <button 
+              onClick={() => navigate(`/log/post/${pendingLog.id}`)}
+              className="w-full py-4 rounded-2xl font-bold flex items-center justify-center space-x-2 transition-colors bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+            >
+              <span>Log Post-Game State</span>
+              <ArrowRight size={20} />
+            </button>
+            <button
+              onClick={() => cancelPendingLog(pendingLog.id)}
+              className="w-full py-3 rounded-2xl font-bold flex items-center justify-center space-x-2 transition-colors bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400"
+            >
+              Cancel Pending Match
+            </button>
+          </div>
         ) : (
           <button 
             onClick={() => navigate('/log/pre')}

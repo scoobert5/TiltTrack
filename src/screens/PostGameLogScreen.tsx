@@ -6,7 +6,7 @@ import { FieldRenderer } from './PreGameLogScreen';
 export default function PostGameLogScreen() {
   const navigate = useNavigate();
   const { logId } = useParams();
-  const { activeProfileId, profiles, addPostGameLog, logs, postGameDraft, setPostGameDraft } = useStore();
+  const { activeProfileId, profiles, addPostGameLog, cancelPendingLog, logs, postGameDraft, setPostGameDraft } = useStore();
   const [formData, setFormData] = useState<Record<string, any>>({});
 
   const profile = profiles.find((p) => p.id === activeProfileId);
@@ -61,6 +61,18 @@ export default function PostGameLogScreen() {
           className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl py-4 transition-colors mt-8"
         >
           Save Log
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (logId) {
+              cancelPendingLog(logId);
+              navigate('/dashboard');
+            }
+          }}
+          className="w-full mt-3 py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-colors bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400"
+        >
+          Cancel Pending Match
         </button>
       </form>
     </div>

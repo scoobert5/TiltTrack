@@ -7,7 +7,7 @@ import { AppHeader } from '../components/AppHeader';
 import { getProfileNotesSummary } from '../lib/notes';
 import { getProfileAIContext } from '../lib/aiContext';
 import { format } from 'date-fns';
-import { getOutcomeBadge } from '../lib/formatters';
+import { getOutcomeBadge, formatDuration } from '../lib/formatters';
 
 export default function InsightsScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -110,14 +110,22 @@ export default function InsightsScreen() {
             </div>
             <h3 className="font-semibold text-zinc-100">AI Foundation</h3>
           </div>
-          <div className="ml-11 space-y-1">
+          <div className="ml-11 space-y-2">
             {aiContext.hasEnoughData ? (
               <p className="text-sm text-emerald-400">Enough data collected for future reflection features.</p>
             ) : (
               <p className="text-sm text-zinc-400">Collecting data for future reflection features...</p>
             )}
             <p className="text-xs text-zinc-500">
-              {aiContext.totalLogs} total matches • {aiContext.totalLogsWithNotes} recent notes available
+              {aiContext.totalCompletedMatches} completed matches available • {aiContext.recentNotes.length} recent notes available
+            </p>
+            {aiContext.averageRecentMatchDurationMs !== undefined && (
+              <p className="text-xs text-zinc-500">
+                Average recent match length: {formatDuration(aiContext.averageRecentMatchDurationMs)}
+              </p>
+            )}
+            <p className="text-xs text-zinc-500 italic">
+              Recent match context includes duration.
             </p>
           </div>
         </div>

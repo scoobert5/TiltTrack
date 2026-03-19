@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Home, PlusCircle, BarChart2, Settings, List, StickyNote } from 'lucide-react';
+import { Home, Settings, StickyNote } from 'lucide-react';
 import clsx from 'clsx';
 
 const Layout = () => {
@@ -14,9 +14,7 @@ const Layout = () => {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 w-full max-w-md bg-zinc-900 border-t border-zinc-800 flex justify-around items-center h-16 px-2 z-50">
         <NavItem to="/dashboard" icon={<Home size={24} />} label="Home" />
-        <NavItem to="/insights" icon={<BarChart2 size={24} />} label="Insights" />
         <NavItem to="/notes" icon={<StickyNote size={24} />} label="Notes" />
-        <NavItem to="/data" icon={<List size={24} />} label="Data" />
         <NavItem to="/settings" icon={<Settings size={24} />} label="Settings" />
       </nav>
     </div>

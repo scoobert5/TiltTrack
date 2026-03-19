@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { FieldConfig } from '../types';
-import { Settings, Plus, ToggleLeft, ToggleRight, Edit2, X, Check, GripVertical, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Settings, Plus, ToggleLeft, ToggleRight, Edit2, X, Check, GripVertical, ChevronRight, ArrowLeft, List } from 'lucide-react';
 import clsx from 'clsx';
 import { defaultPreGameFields, defaultPostGameFields } from '../config/defaultFields';
 import { AppHeader } from '../components/AppHeader';
 
 export default function SettingsScreen() {
+  const navigate = useNavigate();
   const { activeProfileId, profiles, updateProfileSettings } = useStore();
   
   const profile = profiles.find(p => p.id === activeProfileId);
@@ -355,6 +357,22 @@ export default function SettingsScreen() {
             <div className="text-left">
               <h3 className="font-semibold text-zinc-100">Slider Editor</h3>
               <p className="text-xs text-zinc-500">Manage pre and post-game fields</p>
+            </div>
+          </div>
+          <ChevronRight size={20} className="text-zinc-600" />
+        </button>
+
+        <button 
+          onClick={() => navigate('/data')}
+          className="w-full flex items-center justify-between bg-zinc-900 border border-zinc-800 p-4 rounded-xl hover:bg-zinc-800/50 transition-colors"
+        >
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              <List size={20} />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-zinc-100">View Raw Data</h3>
+              <p className="text-xs text-zinc-500">Access all recorded match logs</p>
             </div>
           </div>
           <ChevronRight size={20} className="text-zinc-600" />

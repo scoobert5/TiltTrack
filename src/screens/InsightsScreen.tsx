@@ -5,7 +5,7 @@ import { BrainCircuit, TrendingDown, TrendingUp, AlertCircle, StickyNote, Sparkl
 import clsx from 'clsx';
 import { AppHeader } from '../components/AppHeader';
 import { getProfileNotesSummary } from '../lib/notes';
-import { getProfileAIContext } from '../lib/aiContext';
+import { getReflectionPayload } from '../lib/aiContext';
 import { format } from 'date-fns';
 import { getOutcomeBadge, formatDuration } from '../lib/formatters';
 
@@ -22,12 +22,12 @@ export default function InsightsScreen() {
     return getProfileNotesSummary(logs, activeProfileId);
   }, [logs, activeProfileId]);
   
-  const aiContext = useMemo(() => {
+  const reflectionPayload = useMemo(() => {
     if (!activeProfileId) return null;
-    return getProfileAIContext(logs, activeProfileId);
+    return getReflectionPayload(logs, activeProfileId);
   }, [logs, activeProfileId]);
 
-  if (!profile || !notesSummary || !aiContext) return null;
+  if (!profile || !notesSummary || !reflectionPayload) return null;
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
@@ -112,22 +112,30 @@ export default function InsightsScreen() {
             <h3 className="font-semibold text-zinc-100">AI Foundation</h3>
           </div>
           <div className="ml-11 space-y-2">
-            {aiContext.hasEnoughData ? (
-              <p className="text-sm text-emerald-400">Enough data collected for future reflection features.</p>
+            {reflectionPayload.metadata.eligibility.isEligible ? (
+              <p className="text-sm text-emerald-400">Ready for reflection.</p>
             ) : (
-              <p className="text-sm text-zinc-400">Collecting data for future reflection features...</p>
+              <p className="text-sm text-zinc-400">Not enough data yet. Collect more matches or notes.</p>
             )}
             <p className="text-xs text-zinc-500">
-              {aiContext.totalCompletedMatches} completed matches available • {aiContext.recentNotes.length} recent notes available
+              {reflectionPayload.summary.totalCompletedMatches} completed matches available • {reflectionPayload.metadata.recentNoteCount} recent notes available
             </p>
-            {aiContext.averageRecentMatchDurationMs !== undefined && (
+            {reflectionPayload.summary.averageMatchDurationMs !== undefined && (
               <p className="text-xs text-zinc-500">
-                Average recent match length: {formatDuration(aiContext.averageRecentMatchDurationMs)}
+                Average recent match length: {formatDuration(reflectionPayload.summary.averageMatchDurationMs)}
               </p>
             )}
-            <p className="text-xs text-zinc-500 italic">
-              Recent match context includes duration.
-            </p>
+            <div className="mt-3 pt-3 border-t border-zinc-800/50">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">Eligibility Status</p>
+              <ul className="space-y-1">
+                {reflectionPayload.metadata.eligibility.reasons.map((reason, i) => (
+                  <li key={i} className="text-xs text-zinc-500 flex items-center space-x-1.5">
+                    <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
+                    <span>{reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>

@@ -108,6 +108,15 @@ export function getProfileAIContext(logs: LogEntry[], profileId: string, options
   };
 }
 
+export interface ReflectionEligibility {
+  isEligible: boolean;
+  reasons: string[];
+  metrics: {
+    completedMatches: number;
+    notesCount: number;
+  };
+}
+
 export interface ReflectionPayload {
   profileId: string;
   generatedAt: number;
@@ -142,6 +151,36 @@ export interface ReflectionPayload {
     hasEnoughData: boolean;
     recentMatchCount: number;
     recentNoteCount: number;
+    eligibility: ReflectionEligibility;
+  };
+}
+
+export function evaluateReflectionEligibility(payload: ReflectionPayload): ReflectionEligibility {
+  const completedMatches = payload.summary.totalCompletedMatches;
+  const notesCount = payload.summary.totalNotes;
+  
+  const reasons: string[] = [];
+  let isEligible = false;
+  
+  if (completedMatches >= 3 || notesCount >= 2) {
+    isEligible = true;
+    reasons.push("Eligible for reflection");
+  } else {
+    if (completedMatches < 3) {
+      reasons.push("Not enough completed matches (need 3)");
+    }
+    if (notesCount < 2) {
+      reasons.push("Not enough notes (need 2)");
+    }
+  }
+  
+  return {
+    isEligible,
+    reasons,
+    metrics: {
+      completedMatches,
+      notesCount
+    }
   };
 }
 
@@ -154,7 +193,7 @@ export function getReflectionPayload(logs: LogEntry[], profileId: string, option
     recentNoteLimit,
   });
 
-  return {
+  const payload: ReflectionPayload = {
     profileId: context.profileId,
     generatedAt: Date.now(),
     summary: {
@@ -184,6 +223,15 @@ export function getReflectionPayload(logs: LogEntry[], profileId: string, option
       hasEnoughData: context.hasEnoughData,
       recentMatchCount: context.recentMatches.length,
       recentNoteCount: context.recentNotes.length,
+      eligibility: {
+        isEligible: false,
+        reasons: [],
+        metrics: { completedMatches: 0, notesCount: 0 }
+      }
     }
   };
+
+  payload.metadata.eligibility = evaluateReflectionEligibility(payload);
+
+  return payload;
 }

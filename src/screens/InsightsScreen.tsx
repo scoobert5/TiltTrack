@@ -7,6 +7,7 @@ import { AppHeader } from '../components/AppHeader';
 import { getProfileNotesSummary } from '../lib/notes';
 import { getProfileAIContext } from '../lib/aiContext';
 import { format } from 'date-fns';
+import { getOutcomeBadge } from '../lib/formatters';
 
 export default function InsightsScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -15,10 +16,18 @@ export default function InsightsScreen() {
   const profileLogs = logs.filter(l => l.profileId === activeProfileId);
   
   const insights = useMemo(() => generateInsights(profileLogs), [profileLogs]);
-  const notesSummary = useMemo(() => getProfileNotesSummary(logs, activeProfileId!), [logs, activeProfileId]);
-  const aiContext = useMemo(() => getProfileAIContext(logs, activeProfileId!), [logs, activeProfileId]);
+  
+  const notesSummary = useMemo(() => {
+    if (!activeProfileId) return null;
+    return getProfileNotesSummary(logs, activeProfileId);
+  }, [logs, activeProfileId]);
+  
+  const aiContext = useMemo(() => {
+    if (!activeProfileId) return null;
+    return getProfileAIContext(logs, activeProfileId);
+  }, [logs, activeProfileId]);
 
-  if (!profile) return null;
+  if (!profile || !notesSummary || !aiContext) return null;
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 p-6 pb-24 overflow-y-auto">
@@ -45,11 +54,9 @@ export default function InsightsScreen() {
                     {noteEntry.outcome && (
                       <span className={clsx(
                         "text-[10px] font-bold px-1.5 py-0.5 rounded border",
-                        noteEntry.outcome === 'Win' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                        noteEntry.outcome === 'Loss' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
-                        'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                        getOutcomeBadge(noteEntry.outcome).color
                       )}>
-                        {noteEntry.outcome === 'Win' ? 'W' : noteEntry.outcome === 'Loss' ? 'L' : 'D'}
+                        {getOutcomeBadge(noteEntry.outcome).label}
                       </span>
                     )}
                   </div>

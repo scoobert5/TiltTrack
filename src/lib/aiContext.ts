@@ -1,4 +1,5 @@
 import { LogEntry } from '../types';
+import { hasValidNote, getProfileLogs, getProfileNoteLogs, getRecentProfileNoteLogs } from './notes';
 
 export interface RecentMatchContext {
   logId: string;
@@ -23,14 +24,6 @@ export interface ProfileAIContext {
     tiltLabel?: string;
   }>;
   hasEnoughData: boolean;
-}
-
-export function hasValidNote(log: LogEntry): boolean {
-  return typeof log.postGameData?.note === 'string' && log.postGameData.note.trim().length > 0;
-}
-
-export function getProfileLogs(logs: LogEntry[], profileId: string): LogEntry[] {
-  return logs.filter(log => log.profileId === profileId);
 }
 
 export function getRecentProfileLogs(logs: LogEntry[], profileId: string, limit: number = 10): LogEntry[] {
@@ -58,7 +51,7 @@ export function getProfileAIContext(logs: LogEntry[], profileId: string, options
   const profileLogs = getProfileLogs(logs, profileId);
   const totalLogs = profileLogs.length;
   
-  const logsWithNotes = profileLogs.filter(hasValidNote);
+  const logsWithNotes = getProfileNoteLogs(logs, profileId);
   const totalLogsWithNotes = logsWithNotes.length;
   
   const recentMatchLimit = options?.recentMatchLimit ?? 10;
@@ -67,9 +60,7 @@ export function getProfileAIContext(logs: LogEntry[], profileId: string, options
   const recentLogs = getRecentProfileLogs(logs, profileId, recentMatchLimit);
   const recentMatches = recentLogs.map(toRecentMatchContext);
   
-  const recentNotesLogs = [...logsWithNotes]
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, recentNoteLimit);
+  const recentNotesLogs = getRecentProfileNoteLogs(logs, profileId, recentNoteLimit);
     
   const recentNotes = recentNotesLogs.map(log => ({
     logId: log.id,

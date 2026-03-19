@@ -109,6 +109,7 @@ export const useStore = create<AppState>()(
           timestamp: now,
           preGameData: data,
           sessionId,
+          matchStartedAt: now,
         };
 
         // Update session logIds
@@ -129,6 +130,10 @@ export const useStore = create<AppState>()(
           const log = state.logs.find(l => l.id === logId);
           if (!log) return state;
 
+          const now = Date.now();
+          const matchEndedAt = now;
+          const matchDurationMs = log.matchStartedAt ? Math.max(0, matchEndedAt - log.matchStartedAt) : undefined;
+
           const recentLogs = state.logs
             .filter(l => l.profileId === log.profileId && l.postGameData)
             .sort((a, b) => b.timestamp - a.timestamp)
@@ -139,7 +144,12 @@ export const useStore = create<AppState>()(
 
           return {
             logs: state.logs.map((l) =>
-              l.id === logId ? { ...l, postGameData: postGameDataWithTilt } : l
+              l.id === logId ? { 
+                ...l, 
+                postGameData: postGameDataWithTilt,
+                matchEndedAt,
+                matchDurationMs
+              } : l
             ),
           };
         });

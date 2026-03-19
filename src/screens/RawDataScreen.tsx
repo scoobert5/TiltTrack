@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
+import { formatDuration } from '../lib/formatters';
 
 export default function RawDataScreen() {
   const { activeProfileId, profiles, logs } = useStore();
@@ -25,9 +26,16 @@ export default function RawDataScreen() {
           profileLogs.map((log) => (
             <div key={log.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
               <div className="flex justify-between items-center mb-3 pb-3 border-b border-zinc-800">
-                <span className="text-xs font-medium text-zinc-400">
-                  {format(log.timestamp, 'MMM d, yyyy • h:mm a')}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-xs font-medium text-zinc-400">
+                    {format(log.timestamp, 'MMM d, yyyy • h:mm a')}
+                  </span>
+                  {log.matchDurationMs !== undefined && (
+                    <span className="text-[10px] font-medium text-zinc-500 mt-0.5">
+                      Duration: {formatDuration(log.matchDurationMs)}
+                    </span>
+                  )}
+                </div>
                 {log.postGameData?.outcome && (
                   <span className={`text-xs font-bold px-2 py-1 rounded-md ${
                     log.postGameData.outcome === 'Win' ? 'bg-emerald-500/20 text-emerald-400' :

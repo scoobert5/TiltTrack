@@ -30,6 +30,9 @@ export interface LogEntry {
   preGameData: Record<string, any>;
   postGameData?: Record<string, any>;
   sessionId: string;
+  matchStartedAt?: number;
+  matchEndedAt?: number;
+  matchDurationMs?: number;
 }
 
 export interface Session {
